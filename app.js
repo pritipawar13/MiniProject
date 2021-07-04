@@ -4,7 +4,8 @@ const bodyParser=require('body-parser');
 const db=require('./helper/db');
 const uploadimage=require('./Router/upload_image');
 const deleteimage=require('./Router/delete_image')
-const saveimage=require('./Router/upload_save.js')
+const saveimage=require('./Router/upload_save.js');
+const allfiles=require('./Router/all_file')
 const path=require('path')
 
 const app=express();
@@ -20,7 +21,8 @@ app.use(express.json())
 app.use(authroute);
 app.use('/uploadimage',uploadimage);
 app.use(deleteimage)
-app.use(saveimage)
+app.use(saveimage);
+app.use(allfiles)
 
 
 const port=process.env.PORT||2000;
