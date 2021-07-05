@@ -10,6 +10,7 @@ const path=require('path')
 
 const app=express();
 const authroute=require('./Router/authroute');
+const { appendFile } = require('fs');
 
 
 app.use(express.urlencoded({
@@ -27,7 +28,7 @@ app.use(allfiles)
 
 const port=process.env.PORT||2000;
 
-//app.set('view engine','ejs');
+app.set('view engine','ejs');
 
 // for handling error 
 app.use(async(req,res,next)=>{
@@ -47,6 +48,13 @@ app.use((err,req,res,next)=>{
         }
     })
 })
+/*
+app.get('/register',function(req,res){
+    res.render('register.ejs')
+})
+app.get('/login',function(req,res){
+    res.render('login')
+})*/
 
 
 
