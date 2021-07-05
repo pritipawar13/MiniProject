@@ -2,14 +2,8 @@ const express=require('express');
 const router=express.Router()
 const multer=require('multer')
 const path=require("path");
-const uploadmodel=require('../model/upload.model')
 const maxfilesize=1024 *1024;
 const saveimage=require('./upload_save')
-
-const imageData=uploadmodel.find({})
-
-router.use(express.static(__dirname+'./Public/'))
-
 
 // storage engine
 const storage=multer.diskStorage({
@@ -42,7 +36,7 @@ const upload=multer({
     
 }).single('image')
 
-router.use(express.static(__dirname+'./public'))
+router.use(express.static(__dirname+'./Public'))
 router.post("/",function (req, res,next) {
     upload(req,res,function(err) {
         if(err) {
@@ -51,7 +45,7 @@ router.post("/",function (req, res,next) {
         res.send(`Name of image : ${req.file.originalname} 
 		type of file : ${req.file.fieldname}
 		Success, Image uploaded!`)
-        // res.send(`You have uploaded this image: <hr/><img src="${req.file.path}" width="500"><hr /><a href="./">Upload another image</a>`)
+         //res.send(`You have uploaded this image: <hr/><img src="${req.file.path}" width="500"><hr /><a href="./">Upload another image</a>`)
         console.log(req.file);
         
             })     

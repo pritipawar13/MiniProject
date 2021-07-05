@@ -9,10 +9,7 @@ const createError=require('http-errors')
 const { authschema }=require('../helper/schema_validation.js')
 //const { signAccessToken }=require('../helper/jwt_helper')
 
-
-router.post('/register',async(req,res,next)=>{
-    //console.log(req.body)
-    
+router.post('/register',async(req,res,next)=>{    
     try{
         //const { name,email,password}=req.body
         //if(!email || !password) throw createError.BadRequest()
@@ -26,7 +23,7 @@ router.post('/register',async(req,res,next)=>{
 
         const user=new User(result)
         const saveuser=await user.save()
-      // const accesstoken=await signAccessToken(saveuser.id)
+       //const accesstoken=await signAccessToken(saveuser.id)
 
        res.send(saveuser)
        //res.send(accesstoken)
@@ -37,24 +34,25 @@ router.post('/register',async(req,res,next)=>{
     }  
 })
 
-router.post('/login',async(req,res,next)=>{
+router.post('/login',async (req,res,next)=>{
     try{
         const result=await authschema.validateAsync(req.body)
         const user=await User.findOne({ email :result.email})
         if(!user) throw createError.NotFound('user not regesitered')
 
-        if(User.password== result.password && User.email==result.email){
-            res.send("Login User")
+        const ismatch=await user.isvalidpassword(result.password)
+        if(!ismatch){
+            throw createError.Unauthorized('username/password not valid')
         }
 
-        //res.send(result)
+        res.send(result)
     }catch(error){
         if(error.isJoi==true) return next(createError.BadRequest("Invalid Username/Password"))
         next(error)
     }
-    
-    //res.send("Login Route")
+
 })
+
 
 
 

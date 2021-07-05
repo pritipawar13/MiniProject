@@ -2,7 +2,6 @@ const express=require('express');
 const router=express.Router()
 const multer=require('multer')
 const path=require("path");
-const uploadmodel=require('../model/upload.model')
 const maxfilesize=1024 *1024;
 
 // storage engine
@@ -20,7 +19,6 @@ const upload=multer({
     
 }).single('file')
 
-//router.use(express.static(__dirname+'./public'))
 router.post("/uploadfile",function (req, res,next) {
     upload(req,res,function(err) {
         if(err) {
