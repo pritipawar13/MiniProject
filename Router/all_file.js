@@ -6,7 +6,7 @@ const maxfilesize=1024 *1024;
 
 // storage engine
 const storage=multer.diskStorage({
-	destination:'./Public/uploads/files',
+	destination:'./Public/files',
 	filename: (req,file,cb)=>{
 		return cb(null,`${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`)
 	}

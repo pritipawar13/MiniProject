@@ -2,12 +2,19 @@ const express=require('express');
 const router=require('express').Router()
 const bodyParser=require('body-parser');
 const app=express();
-const mongoose=require('mongoose')
+const mongoose=require('mongoose');
+const multer=require('multer')
+const JWT=require('jsonwebtoken');
 
 const User=require('../model/user.model')
+const uploadModel=require('../model/upload.model')
 const createError=require('http-errors')
-const { authschema }=require('../helper/schema_validation.js')
-//const { signAccessToken }=require('../helper/jwt_helper')
+const { authschema }=require('../helper/schema_validation.js');
+const path=require('path');
+const check_register=require('../Middleware/check_register');
+const {signAccessToken}=require('../helper/jwt_helper')
+//const uploaded_images=require('./upload_image')
+const maxfilesize=1024 *1024;
 
 router.post('/register',async(req,res,next)=>{    
     try{
@@ -23,10 +30,9 @@ router.post('/register',async(req,res,next)=>{
 
         const user=new User(result)
         const saveuser=await user.save()
-       //const accesstoken=await signAccessToken(saveuser.id)
-
+      
        res.send(saveuser)
-       //res.send(accesstoken)
+    
     }
     catch(error){
         if(error.isJoi ==true) error.status=422
@@ -34,25 +40,29 @@ router.post('/register',async(req,res,next)=>{
     }  
 })
 
-router.post('/login',async (req,res,next)=>{
+router.post('/login',async function (req,res,next){
     try{
-        const result=await authschema.validateAsync(req.body)
-        const user=await User.findOne({ email :result.email})
-        if(!user) throw createError.NotFound('user not regesitered')
+        const result= await authschema.validateAsync(req.body)
+        const user=  await User.findOne({ email :result.email})
+        if(!user)  throw createError.NotFound('user not regesitered')
+            //res.send('user not regesitered')
 
-        const ismatch=await user.isvalidpassword(result.password)
+        const ismatch= await user.isvalidpassword(result.password)
         if(!ismatch){
+            //res.send('password not valid')
             throw createError.Unauthorized('username/password not valid')
         }
-
-        res.send(result)
+       // const accesstoken=await signAccessToken(user.id)
+        //res.send({accesstoken})
+       
+    res.send(` ${result.email} is Successfully Login`)
     }catch(error){
-        if(error.isJoi==true) return next(createError.BadRequest("Invalid Username/Password"))
+      //  throw error;
+       if(error.isJoi==true) 
+        return next(createError.BadRequest("Invalid Username/Password"))
         next(error)
     }
-
 })
-
 
 
 

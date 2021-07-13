@@ -6,7 +6,7 @@ const path=require('path')
 
 const port=process.env.PORT ||2000;
 
-const dirPath='./Public/uploads/image'
+const dirPath='./public/images'
 
 router.delete('/deleteimage/:imagename',function(req,res){
     if(!req.params.imagename){
