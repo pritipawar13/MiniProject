@@ -1,1 +1,22 @@
+<html>
+  <head>
 
+  </head>
+  <title> Upload Image</title>
+  <body> 
+
+    <div class="container">
+                  <div class="row">
+                      <%if (record.length >0){ %>
+                        <% record.forEach(function(row){ %>
+                 <div class="col-md-4">
+                   <img src="./images/<%= row.image %>" alt="image" style="width:30%;height:30%;margin:5px auto;"><br>
+                   image Name:<%= row.image %> <br>
+                   Description:<%= row. description %>
+                 </div>
+                 <% }) }%>
+                    </div></div>
+
+
+  </body>
+</html>
