@@ -3,11 +3,14 @@ const Schema= mongoose.Schema;
 const connection=require('../helper/db');
 
 const Uploadschema=new mongoose.Schema({
-    imagename:String,
-    fieldname:String,
-    path:String,
-    mimetype:String,
-    size:Number
+    description: String,
+    username:String,
+    image: String,
+    filePath:String,
+    createdAt: {
+    type: Date,
+    default: new Date()
+}
 
 })
 
