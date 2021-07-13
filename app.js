@@ -6,12 +6,13 @@ const uploadimage=require('./Router/upload_image');
 const deleteimage=require('./Router/delete_image')
 const saveimage=require('./Router/upload_save.js');
 const allfiles=require('./Router/all_file')
+const images=require('./Router/image_page')
 const path=require('path')
 
 const app=express();
 const authroute=require('./Router/authroute');
-const { appendFile } = require('fs');
-
+app.set('view engine', 'ejs');
+app.use(express.static("public"))
 
 app.use(express.urlencoded({
     extended:true
@@ -20,15 +21,14 @@ app.use(express.json())
 
 // Calling Routes 
 app.use(authroute);
-app.use('/uploadimage',uploadimage);
+app.use(uploadimage);
 app.use(deleteimage)
 app.use(saveimage);
 app.use(allfiles)
+app.use(images)
 
 
-const port=process.env.PORT||2000;
-
-app.set('view engine','ejs');
+const port=process.env.PORT||2008;
 
 // for handling error 
 app.use(async(req,res,next)=>{
@@ -48,15 +48,6 @@ app.use((err,req,res,next)=>{
         }
     })
 })
-/*
-app.get('/register',function(req,res){
-    res.render('register.ejs')
-})
-app.get('/login',function(req,res){
-    res.render('login')
-})*/
-
-
 
 
 app.listen(port,function(){
