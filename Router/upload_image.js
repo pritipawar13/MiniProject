@@ -1,14 +1,21 @@
 const express=require('express');
 const router=express.Router()
 const multer=require('multer')
+const jwt_decode = require('jwt-decode');
 const path=require("path");
 const fs=require('fs')
 const maxfilesize=1024 *1024;
 const uploadModel=require('../model/upload.model');
+const verifyToken=require('../Middleware/authenticateToken');
 const imageData=uploadModel.find({})
 
 router.use(express.static(__dirname+"./public"))
+router.use(express.static(__dirname+"./public/images"))
 
+// This function is used for decode the access token 
+function decodeToken(token){
+  return jwt_decode(token);
+}
 
 // storage engine
 const storage=multer.diskStorage({
@@ -41,23 +48,23 @@ const upload=multer({
                 + "following filetypes - " + filetypes);
       } 
     
-}).single('image')
+}).single('image');
 
-;
+router.post('/upload',verifyToken,upload,function (req, res) {
+   var authHeader=req.headers['authorization'].split(' ')[1]
+   var decodedToken=decodeToken(authHeader)
+   console.log(decodedToken)
 
-router.post('/upload',upload,function (req, res,next) {
-  var username=req.body.email;
+   var username=decodedToken.email
    var imageFile=req.file.filename;
-    var description=req.body. description;  
-    var filePath=req.file.path;
-   
-
- var imageDetails= new uploadModel({
+   var description=req.body. description;  
+   var filePath=req.file.path
+   var imageDetails= new uploadModel({
    image:imageFile,
    description:description,
    filePath:filePath,
    username:username
- });
+   });
    imageDetails.save(function(err,doc){
    if(err) throw err;
       res.send(`${username} uploaded ${imageFile} Successfully Uploaded`)
@@ -66,8 +73,11 @@ router.post('/upload',upload,function (req, res,next) {
 
  // To get all uploaded images by perticular user .
 
- router.get('/seeprofileimages',function(req,res){
-  var username=req.query.email;
+ router.get('/seeprofileimages',verifyToken,function(req,res){
+    var authHeader=req.headers['authorization'].split(' ')[1]
+    var decodedToken=decodeToken(authHeader)
+    console.log(decodedToken)
+    var username=decodedToken.email;
       uploadModel.find({username:{$eq:username}}).exec((err,images)=>{
         if(err){
           throw err;
@@ -92,7 +102,6 @@ router.post('/upload',upload,function (req, res,next) {
  })
 
  // To see the all images in decreasing order
-
   router.get('/latestimages',function(req,res){
     uploadModel.find()
     .sort({createdAt:-1})
@@ -100,7 +109,16 @@ router.post('/upload',upload,function (req, res,next) {
       return res.render('upload', { title: 'Upload File', record:images}) 
     })
   })
-  
+
+/*
+router.get('/image/:imagename',function(req,res){
+ // var images='./images'
+  var imagename=req.params.imagename
+  console.log(imagename)
+  var path=`http://localhost:${port}./images/${imagename}`;
+  res.send(path)
+})*/
+
 // Apply Pagination with images
   router.get('/imagespagination',pagenateResult(uploadModel),function(req,res){
      res.json(res.pagenateResult)
