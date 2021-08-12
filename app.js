@@ -2,18 +2,23 @@ const express=require('express');
 const createError=require('http-errors')
 const bodyParser=require('body-parser');
 const db=require('./helper/db');
+
 const uploadModel=require('./model/upload.model');
+const users=require('./Router/users')
 const uploadimage=require('./Router/upload_image');
 const deleteimage=require('./Router/delete_image')
 const saveimage=require('./Router/upload_save.js');
 const allfiles=require('./Router/all_file')
 const images=require('./Router/image_page')
 const password=require('./Router/password')
-const student=require('./Router/student')
+const UserProfile=require('./Router/userprofile')
+const reportImgae=require('./Router/report_image')
+
 const path=require('path')
 
 const app=express();
 const authroute=require('./Router/authroute');
+//const UserProfile = require('./model/userprofile.model');
 app.set('view engine', 'ejs');
 app.use(express.static("public"))
 app.use(express.static('images'));
@@ -25,6 +30,7 @@ app.use(express.urlencoded({
 app.use(express.json())
 
 // Calling Routes 
+app.use(users)
 app.use(authroute);
 app.use(uploadimage);
 app.use(deleteimage)
@@ -32,7 +38,10 @@ app.use(saveimage);
 app.use(allfiles)
 app.use(images)
 app.use(password)
-app.use(student)
+app.use(UserProfile)
+app.use(reportImgae)
+
+
 
 // display perticular immage on browser using below url
 
