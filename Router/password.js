@@ -24,7 +24,9 @@ router.put('/forgot/password',function(req,res){
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(newpassword, salt);
     User.update({email:email},{$set:{password:hash}}).exec((err,data)=>{
-        if(err) return res.status(400).send("Cannot be forgot Password");
+        if(err) return res.status(400).json({
+            messgae:"Cannot forgot old Password"
+        });
         else{
            res.json({
                status:200,
@@ -50,6 +52,8 @@ router.get('/confirm/password',async function(req,res){
         }
     })
 })
+
+
 
 
 

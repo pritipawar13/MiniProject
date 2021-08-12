@@ -6,7 +6,11 @@ const path=require("path");
 const fs=require('fs')
 const maxfilesize=1024 *1024;
 const uploadModel=require('../model/upload.model');
+const User=require('../model/user.model')
 const verifyToken=require('../Middleware/authenticateToken');
+//const uploadimage = require('../model/upload.model');
+const mongoose=require('mongoose');
+const { getMaxListeners } = require('../model/user.model');
 const imageData=uploadModel.find({})
 
 router.use(express.static(__dirname+"./public"))
@@ -56,18 +60,21 @@ router.post('/upload',verifyToken,upload,function (req, res) {
    console.log(decodedToken)
 
    var username=decodedToken.email
+   var role=decodedToken.role
    var imageFile=req.file.filename;
    var description=req.body. description;  
    var filePath=req.file.path
-   var imageDetails= new uploadModel({
+   const imageDetails= new uploadModel({
    image:imageFile,
    description:description,
    filePath:filePath,
-   username:username
+   username:username,
    });
    imageDetails.save(function(err,doc){
    if(err) throw err;
-      res.send(`${username} uploaded ${imageFile} Successfully Uploaded`)
+      res.status(200).json({
+        message:`${username} uploaded ${imageFile} Successfully Uploaded`
+      })
     });
 });
 
@@ -77,14 +84,14 @@ router.post('/upload',verifyToken,upload,function (req, res) {
     var authHeader=req.headers['authorization'].split(' ')[1]
     var decodedToken=decodeToken(authHeader)
     console.log(decodedToken)
-    var username=decodedToken.email;
-      uploadModel.find({username:{$eq:username}}).exec((err,images)=>{
+    var email=decodedToken.email;
+      uploadModel.find({username:{$eq:email}}).exec((err,images)=>{
         if(err){
           throw err;
         }
       else{
-        // return res.json({status:'ok',images})
-        res.render('upload',{record:images})
+         return res.json({status:'ok',images})
+        //res.render('upload',{record:images})
        }        
     })
  })  
@@ -96,28 +103,100 @@ router.post('/upload',verifyToken,upload,function (req, res) {
      if(err){
        throw err;
      }else{
-       res.render('upload',{record:user})
+       res.status(200).json({
+         message:"All Uploded Images",
+         images:user
+       })
+       //res.render('upload',{record:user})
      }
    })
  })
 
  // To see the all images in decreasing order
-  router.get('/latestimages',function(req,res){
-    uploadModel.find()
-    .sort({createdAt:-1})
-    .then((images)=>{
-      return res.render('upload', { title: 'Upload File', record:images}) 
+/*  router.get('/latestimages',function(req,res){
+    var authHeader=req.headers['authorization'].split(' ')[1]
+    var decodedToken=decodeToken(authHeader)
+    //console.log(decodedToken)
+    var models=[User,uploadModel]
+    var username=decodedToken.email;
+    uploadModel.find({username:username}).sort({createdAt:-1}).then((images)=>{
+      console.log(images)
+      return res.json({images})
     })
+  })*/
+
+// findout information about user and their uploaded images by using aggregate
+  router.get('/latestimages/:id',function(req,res){
+    var email=req.params.id
+   
+    User.aggregate([{ $match:{"email":email}},
+      {$project :{"__v":0,"password":0}},
+     {  $lookup: {
+              from: "uploadimages",
+              localField: "email",
+              foreignField: "username",
+              as: "images"
+          }
+  }]).then(result=>{
+  res.json(result)
+  })
+ /*
+  User.aggregate([{ $match:{"email":email}},
+  { $project:{"password":0,"__v":0}},
+    { $lookup:{
+      from:"uploadimages",
+      let:{email_user:'$email',},
+      pipeline:[
+        {$match:{$expr:{ $eq:['$username','$$email_user']}} },
+          { $project: { __v: 0} }, // which field we dont want  the value of that is 0 . if we want then it places as 1
+          { $sort:{createdAt:-1}}
+        ],         
+      as:"images"
+    }
+  }]).then(result=>{
+  res.json(result)
+  })*/
+})
+
+
+// findout information about user and their uploaded images by using populate.
+
+ router.get('/images/:id',function(req,res){
+    uploadModel.findOne({_id:req.params.id })
+    .populate('user').exec((err,data)=>{
+      res.status(200).json({
+        message:"okk",
+        result:data
+      })
+    })
+    })
+
+// Edit Description of post by using Id.
+router.put('/edit/describtion/:id',async (req,res)=>{
+  var id=req.params.id
+  var newDesc=req.body.description;
+
+  await uploadModel.findByIdAndUpdate({_id:id},{$set:{description:newDesc}})
+  res.status(200).json({
+    message:`${req.body.username} Sucessfully Edit the Description about post `
   })
 
-/*
-router.get('/image/:imagename',function(req,res){
- // var images='./images'
-  var imagename=req.params.imagename
-  console.log(imagename)
-  var path=`http://localhost:${port}./images/${imagename}`;
-  res.send(path)
-})*/
+})
+
+// edit existing image with new image of perticular
+
+router.put('/edit/image/:id',upload,async(req,res)=>{
+  var id=req.params.id
+  var newimage=req.file.filename
+  await uploadModel.findByIdAndUpdate({_id:id},{$set:{image:newimage}})
+  res.status(200).json({
+    message:"Successfully uploaded new images "
+  })
+
+})
+
+// delete
+  
 
 // Apply Pagination with images
   router.get('/imagespagination',pagenateResult(uploadModel),function(req,res){

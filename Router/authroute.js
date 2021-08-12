@@ -14,21 +14,22 @@ const verifyToken=require('../Middleware/authenticateToken');
 
 router.post('/register',async(req,res,next)=>{    
     try{
-        //const { name,email,password}=req.body
-        //if(!email || !password) throw createError.BadRequest()
-
         const result=await authschema.validateAsync(req.body)
-       // console.log(result)
-
         const doesexits=await User.findOne({ email:result.email})
         if(doesexits) 
             throw createError.Conflict(`${result.email} is already Registered`)
+        const user=new User({
+            firstname:req.body.firstname,
+            lastname:req.body.lastname,
+            email:req.body.email,
+            password:req.body.password,
+            role:req.body.role
 
-        const user=new User(result)
+        })
         const saveuser=await user.save()
-      res.send("User Added Successfully")
-      // res.send(saveuser)
-    
+      res.status(200).json({
+          message:" SuccessFully New User Added",
+      })    
     }
     catch(error){
         if(error.isJoi ==true) error.status=422
@@ -55,16 +56,21 @@ router.post('/login',async function (req,res){
         const user=  await  User.findOne({ email :result.email})
         if(!user)
             return res.status(400).send('user not regesitered')
+        if(user.role!=req.body.role){
+            res.status(400).json({
+                status:400,
+                sucess:false,
+                message:"Make sure your credinational is Right ??"
+            })
+        }
         const ismatch= await  user.isvalidpassword(result.password)
         if(!ismatch){
             return res.status(400).send('password not valid')
         }
-        const userauth={email:result.email,firstname:result.firstname,lastname:result.lastname,password:result.password};
+        const userauth={id:result._id,email:result.email,firstname:result.firstname,lastname:result.lastname,role:result.role,password:result.password};
         const accessToken=generateAccessToken(userauth)
-        //const refreshToken=generateRefreshToken(userauth)
         console.log(accessToken)
-        res.send(`Access Token :${accessToken}`)
-       // res.json({accessToken:accessToken,refreshToken:refreshToken})
+        res.json({accessToken:accessToken})
     }catch(error){
       throw error;
     }
