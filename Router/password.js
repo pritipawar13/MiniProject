@@ -1,60 +1,43 @@
-const express=require('express');
-const bodyParser=require('body-parser');
-const router=require('express').Router()
-const mongoose=require('mongoose');
-const bcrypt=require('bcrypt')
-const User=require('../model/user.model')
-const createError=require('http-errors')
-const { authschema }=require('../helper/schema_validation.js');
-const path=require('path');
+const express = require('express');
 
-router.get('/password',function(req,res){
-    var email=req.body.email;
-    User.find({email:{$in:email}}).exec((err,data)=>{
-        if(err) return res.status(400).send("Email not found");
-        else{
-            res.json(data)
-        }
-    })
-})
+const router = express.Router();
+const bcrypt = require('bcrypt');
+const User = require('../model/user.model');
 
-router.put('/forgot/password',function(req,res){
-    var email=req.body.email;
-    var newpassword=req.body.password;
-    const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(newpassword, salt);
-    User.update({email:email},{$set:{password:hash}}).exec((err,data)=>{
-        if(err) return res.status(400).json({
-            messgae:"Cannot forgot old Password"
-        });
-        else{
-           res.json({
-               status:200,
-               message:`${email} has been Successfully forgot the old Password`
-           })
-        }
-    })
-})
+router.get('/password', (req, res) => {
+  User.find({ email: req.body.email });
+  res.status(201).send('this is a password ');
+});
 
-router.get('/confirm/password',async function(req,res){
-    var email=req.body.email;
-    var password=req.body.password;
-    const salt =await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(password, salt);
-   await bcrypt.compare(password,hash,function(err,data){
-        if(err) return res.status(400).send("Password is invalid Password")
-        else{
-            //res.status(200).send("Confirm the password")
-            res.json({
-                status:200,
-                message:`${email} has confirm the password`
-            })
-        }
-    })
-})
+router.put('/forgot/password', (req, res) => {
+  var newpassword = req.body.password;
+  const salt = bcrypt.genSaltSync(10);
+  const hash = bcrypt.hashSync(newpassword, salt);
+  User.findOneAndUpdate({ email: req.body.email }, { $set: { password: hash } }).exec((err) => {
+    if (err) {
+      return res.status(400).json({
+        messgae: 'Cannot forgot old Password',
+      });
+    }
+    return res.json({
+      status: 200,
+      message: `${req.body.email} has been Successfully forgot the old Password`,
+    });
+  });
+});
 
+router.get('/confirm/password', async (req, res) => {
+  var { email } = req.body;
+  var { password } = req.body;
+  const salt = await bcrypt.genSalt(10);
+  const hash = await bcrypt.hash(password, salt);
+  await bcrypt.compare(password, hash, (err) => {
+    if (err) return res.status(400).send('Password is invalid Password');
+    res.json({
+      status: 200,
+      message: `${email} has confirm the password`,
+    });
+  });
+});
 
-
-
-
-module.exports=router
+module.exports = router;
