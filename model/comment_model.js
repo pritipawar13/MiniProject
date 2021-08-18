@@ -1,21 +1,27 @@
 const mongoose = require('mongoose');
 const connection = require('../helper/db');
 
-const reportimage = new mongoose.Schema({
-  isreport: Boolean,
-  reportuser: String,
-  reason: String,
+const commentSchema = new mongoose.Schema({
   imageid: mongoose.Schema.Types.ObjectId,
+  user: String,
+  comment: String,
+  createdAt: {
+    type: Date,
+    default: new Date(),
+  },
+  favorite: String,
+
 }, {
   toJSON: { virtuals: true },
   toObject: { virtuals: true },
 });
-reportimage.virtual('posts', {
+
+commentSchema.virtual('posts', {
   ref: 'uploadimage',
   localField: 'imageid',
   foreignField: '_id',
   justOne: true,
 });
 
-const report = mongoose.model('Reportimage', reportimage);
-module.exports = report;
+const Comment = mongoose.model('Comment', commentSchema);
+module.exports = Comment;
